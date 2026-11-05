@@ -1,0 +1,10 @@
+{
+	"extends": "@mikode13/tsconfig/node",
+	"compilerOptions": {
+		"types": ["node"],
+		"rewriteRelativeImportExtensions": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true
+	},
+	"include": ["src", "vitest.config.ts"]
+}

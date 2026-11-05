@@ -1,0 +1,51 @@
+{
+	"name": "harness-api",
+	"version": "0.0.0-development",
+	"private": true,
+	"description": "HTTP API that runs @mikode13/harness agents on a server",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Mikode13/harness-api.git"
+	},
+	"engines": {
+		"node": "^22.13.0 || ^24.0.0"
+	},
+	"packageManager": "pnpm@11.17.0",
+	"scripts": {
+		"preinstall": "npx only-allow pnpm",
+		"prepare": "mikode-git-hooks install",
+		"build": "mikode-scripts clean dist && tsc -p tsconfig.build.json",
+		"start": "node dist/main.js",
+		"format": "prettier . --write",
+		"format:check": "prettier . --check",
+		"lint": "eslint . --max-warnings 0",
+		"lint:fix": "eslint . --fix",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p tests",
+		"test": "pnpm run test:integration",
+		"test:integration": "vitest run --project integration",
+		"test:coverage": "vitest run --project integration --coverage",
+		"check": "pnpm run format:check && pnpm run lint && pnpm run typecheck"
+	},
+	"dependencies": {
+		"@nestjs/common": "^12.3.3",
+		"@nestjs/core": "^12.3.3",
+		"@nestjs/platform-express": "^12.3.3",
+		"reflect-metadata": "^0.2.2",
+		"rxjs": "^7.8.2"
+	},
+	"devDependencies": {
+		"@mikode13/code-quality": "2.0.1",
+		"@mikode13/code-style": "1.0.0",
+		"@mikode13/cross-platform": "1.1.0",
+		"@mikode13/git-hooks": "2.0.0",
+		"@mikode13/tsconfig": "1.0.0",
+		"@types/node": "^24.19.2",
+		"@vitest/coverage-v8": "^4.1.12",
+		"eslint": "^10.14.0",
+		"prettier": "^3.9.10",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.12"
+	}
+}

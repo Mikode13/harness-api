@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ci:
+    name: CI
+    # The latest reviewed revision of Mikode13/.github when this repository adopted MiKode CI;
+    # ai-review.yml pins the same one.
+    uses: Mikode13/.github/.github/workflows/ci.yml@aa9c6acfbc57297bf53966512b91ad9f677cea35
+    with:
+      # Source: `src/` and `tests/` are TypeScript in scope for the shared code-quality rules.
+      source: true
+      # Tests: the offline Vitest suite starts the application on a local port.
+      tests: true
+      # Build: `tsc` emits the server that `pnpm start` runs.
+      build: true
+      # Documentation: `docs/` owns the architecture document and the decision log.
+      documentation: true
+      # Package stays off: nothing is published to npm, and the server deploys from the build.
+      # End-to-end stays off until the API has an HTTP flow worth driving from outside the
+      # process.
