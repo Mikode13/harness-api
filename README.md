@@ -49,6 +49,10 @@ pnpm run test:coverage  # the same suite with V8 coverage of src
 
 ## Architecture
 
+[`docs/mvp.md`](docs/mvp.md) defines the agreed product scope, exclusions and acceptance
+criteria across the harness, API, CLI and mobile app. It describes the target product;
+the implementation status above still applies.
+
 [`docs/architecture.md`](docs/architecture.md) describes the modules, their boundaries and the
 application's contract. [`docs/decisions.md`](docs/decisions.md) records why it is built this
 way.
