@@ -108,7 +108,8 @@ not trigger cancellation. Exact keyboard gestures remain a client design detail.
 ### R06 — Answer questions and approvals
 
 Persist pending human interactions, the asks not yet answered, so they can be viewed and
-answered from either client. A question should not depend on the terminal that started the execution.
+answered from either client. A question should not depend on the terminal that started the
+execution.
 
 **Acceptance:** An agent pauses for input or approval. Close the CLI, answer from mobile,
 and observe the corresponding work continue. Both devices reflect the resolved request;

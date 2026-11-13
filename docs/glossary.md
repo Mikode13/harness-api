@@ -41,8 +41,9 @@ It is not the harness's `Session`; see the last section.
 
 ### Conversation
 
-The set of messages inside a session. It is always whole: nothing in it is dropped or
-rewritten to save context. A session has one active conversation at a time.
+The set of messages inside a session: the prompts the user sends and the events the API
+returns. It is always whole: nothing in it is dropped or rewritten to save context. A session
+has one active conversation at a time.
 
 It is not the context. The context may summarize the conversation; the conversation stays
 whole.
@@ -81,11 +82,11 @@ The execution a prompt starts, inside a conversation.
 
 ### Event
 
-What the API returns while a run works: a tool's activity, a text answer, or anything else
-it reports. Every event is stored in the database.
+What the API returns while a run works, inside the conversation: a tool's activity, a text
+answer, an ask, or anything else it reports. Every event is stored in the database.
 
-An event is not a message of the conversation. The conversation is the set of messages;
-events are what a run reports while it works.
+Whether the messages the model needs are kept as a record apart from the events is an open
+point below.
 
 ### Ask
 
@@ -122,8 +123,9 @@ They are inputs to system design (agenda items in [mvp.md](mvp.md)), not decisio
 - **Stored summaries and the rest of the context.** A summary the context uses might be
   stored, since it costs tokens and cannot be reproduced. The context also takes in what is
   not conversation: the agent's instructions and, later, memories and plans.
-- **An ask is answered once.** An answer to an ask that was already answered might not
-  resume the work again, as the acceptance of R06 requires.
+- **An ask is answered once.** The answer to an ask might be an event of its own, so that a
+  pending ask is one with no answer yet. An answer to an ask that was already answered does
+  not resume the work again, as the acceptance of R06 requires.
 - **Code history belongs to the session.** The code history, which restores code (R09),
   might belong to the session and its worktree, so that it survives a clear. A session may
   have no worktree when it is not about code.
