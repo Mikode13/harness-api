@@ -1,6 +1,7 @@
 # MiKode product MVP
 
-Scope consolidated on 2026-11-11. This document records the agreed product requirements
+Scope consolidated on 2026-11-11; the vocabulary was defined on 2026-11-13 and is in the
+[glossary](glossary.md). This document records the agreed product requirements
 across the harness, API, CLI and mobile app. It defines the target, not the current
 implementation: the API is still a health-endpoint scaffold. See
 [architecture.md](architecture.md) for its current architecture and
@@ -45,25 +46,29 @@ tradeoffs and the reason for the selected approach before implementation starts.
 Each requirement below is required for the complete MVP. Acceptance describes observable
 behavior; it does not prescribe an endpoint, schema or event transport.
 
-### R01 — Own conversations
+### R01 — Own sessions
 
-Create, list, open and delete conversations created in MiKode. Edit a conversation's
-title and append messages. Importing external chats and editing past message content are
-excluded. Persist the conversation rather than depending on a client's local history or
-a provider's chat interface.
+Create, list, open, rename and delete sessions created in MiKode. Append messages to a
+session's conversation. Clear a session: its current conversation is archived and a new,
+empty one starts in the same session, which keeps its title. Importing external chats and
+editing past message content are excluded. Persist the session and its conversations
+rather than depending on a client's local history or a provider's chat interface.
 
-**Acceptance:** Create a conversation, exchange messages, rename it and reopen it after a
-client restart with the same title and history. Delete it and verify it is no longer
-available through normal conversation listing, opening or retrieval tools.
+**Acceptance:** Create a session, exchange messages, rename it and reopen it after a
+client restart with the same title and history. Clear it and verify that the session keeps
+its title, the new conversation is empty and the earlier conversation still exists,
+archived. Delete a session and verify it is no longer available through normal session
+listing, opening or retrieval tools.
 
 ### R02 — Continue across devices
 
-The CLI and mobile app access the same conversations, messages and execution status.
+The CLI and mobile app access the same sessions, conversations, messages and execution
+status.
 Device updates use events, and reconnecting clients recover the current state and missed
 conversation content. Disconnecting a client does not cancel execution.
 
 **Acceptance:** Send a prompt from the CLI, close it and power off the laptop. Open that
-conversation on mobile, see the previous messages and ongoing work, and continue there.
+session on mobile, see the previous messages and ongoing work, and continue there.
 Reopen the CLI and see the messages and outcome produced while it was disconnected.
 
 ### R03 — Execute on server-managed workspaces
@@ -102,8 +107,8 @@ not trigger cancellation. Exact keyboard gestures remain a client design detail.
 
 ### R06 — Answer questions and approvals
 
-Persist pending human interactions so they can be viewed and answered from either
-client. A question should not depend on the terminal that started the execution.
+Persist pending human interactions, the asks not yet answered, so they can be viewed and
+answered from either client. A question should not depend on the terminal that started the execution.
 
 **Acceptance:** An agent pauses for input or approval. Close the CLI, answer from mobile,
 and observe the corresponding work continue. Both devices reflect the resolved request;
@@ -118,7 +123,7 @@ completion and errors that stop execution. A notifier delivers these to CLI and 
 
 **Acceptance:** Observe concise activity during a run and receive a mobile notification
 while the app is in the background for a pending human interaction and a terminal outcome.
-Opening the notification reaches the relevant conversation. An attached CLI reflects the
+Opening the notification reaches the relevant session. An attached CLI reflects the
 same state. Alerts on both devices are acceptable; presence-based suppression is deferred.
 
 ### R08 — Recover after failure
@@ -186,12 +191,13 @@ a retrieved memory in a later conversation without manually copying its text.
 ### R13 — Retrieve other MiKode conversations
 
 Provide tools to find and read relevant messages from the user's other MiKode
-conversations. This is separate from explicit memory and plan retrieval, and does not
-require importing conversations from other products.
+conversations, archived ones included. This is separate from explicit memory and plan
+retrieval, and does not require importing conversations from other products.
 
 **Acceptance:** From conversation B, find and retrieve a relevant message from conversation
-A with a reference to its origin. A deleted conversation is no longer returned. Retrieved
-content is available for the response without inserting all past chats into every prompt.
+A with a reference to its origin. An archived conversation is still found; a deleted
+conversation is no longer returned. Retrieved content is available for the response without
+inserting all past chats into every prompt.
 
 ### R14 — Search the public web and read sources
 
@@ -211,7 +217,7 @@ These gates group the requirements for verification, not a fixed implementation 
 Record the tested revision, scenario and result when a gate is demonstrated. Existing
 core functionality still needs integration verification in the complete product.
 
-- **Conversations and remote execution:** demonstrate R01, R02 and R03, including powering
+- **Sessions and remote execution:** demonstrate R01, R02 and R03, including powering
   off the initiating laptop and running two isolated sessions on the same repository.
 - **Human control and visibility:** demonstrate R05, R06 and R07 on CLI and mobile,
   including reconnecting, a question, an approval, cancellation, completion and a failure.
@@ -247,8 +253,9 @@ they are not permission to silently add features or declare existing proposals s
 
 1. Define component responsibilities and deployment boundaries for harness, API, execution,
    notifier and clients. Start with a diagram and a responsibility table.
-2. Define conversation, session and execution concepts, lifecycle states and transitions,
-   including deletion during active work, cancellation, pending input and reconnects.
+2. Define the lifecycle states and transitions of sessions, conversations and runs, whose
+   terms are in the glossary, including deletion during active work, cancellation, pending
+   input and reconnects.
 3. Define persistence and safe recovery boundaries. Distinguish visible history, model
    context, execution checkpoints, code history and delivery events.
 4. Design context assembly: instructions, current messages, selected history, memories,
