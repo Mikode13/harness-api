@@ -9,6 +9,8 @@ type uses the same word for something else, the last section says so.
 ```mermaid
 flowchart TD
     user[User] --> session[Session]
+    session -.-> workspace[Workspace]
+    workspace --> root[Root]
     session --> active[Active conversation]
     session -.-> archived[Archived conversations]
     active --> prompt[Prompt]
@@ -16,10 +18,10 @@ flowchart TD
     run --> event[Event]
 ```
 
-A user owns sessions. A session has one active conversation and any number of archived
-ones. A prompt sent in a conversation starts a run, and the run reports events. The context
-is not in the diagram: it is what a run is given from the conversation on a call to the
-model.
+A user owns sessions. A session may have a workspace, of one or more roots, and has one
+active conversation and any number of archived ones. Each prompt sent in a conversation
+starts a run, so a conversation has many runs, and a run reports events. The context is not
+in the diagram: it is what a run is given from the conversation on a call to the model.
 
 ## Settled terms
 
@@ -31,8 +33,10 @@ constraints in [mvp.md](mvp.md).
 ### Session
 
 A reserved space the user keeps and comes back to. It has a title and is where work on one
-thing lives. For example, a worktree for translations and the session for translations that
-lives there.
+thing lives. For example, the session for translations, whose workspace is a worktree for
+translations.
+
+A session has one workspace, or none when it is not about code.
 
 A session outlives its conversations: the user can clear it and keep it. What the user
 lists, opens, renames and deletes is sessions, not conversations.
@@ -51,7 +55,7 @@ whole.
 ### Clear
 
 Clearing a session archives its current conversation and starts a new, empty one in the
-same session. The session, its title and its worktree stay. For example, the session for
+same session. The session, its title and its workspace stay. For example, the session for
 translations is cleared to start a different translations task.
 
 Clearing does not delete anything.
@@ -72,13 +76,34 @@ is the capital of Papua New Guinea" is not worth remembering.
 Archived and deleted are two different states: an archived conversation can still be
 found, a deleted one cannot.
 
+### Workspace
+
+Where the harness works for a session: one root or several. A workspace of several roots
+holds several projects at once, such as this API and the harness together.
+
+It is not a worktree. A worktree is one thing a root can be.
+
+On the server of the MVP, every root is a worktree, so two sessions on the same project
+never write in the same folder, as R03 of [mvp.md](mvp.md) requires. Working in a project's
+main folder is for local use.
+
+### Root
+
+One folder of a workspace: a worktree, or a project's main folder with no worktree.
+
+### Worktree
+
+A copy of a repository, and nothing more. It becomes part of a workspace when a session
+works in it.
+
 ### Prompt
 
 What the user sends in a conversation.
 
 ### Run
 
-The execution a prompt starts, inside a conversation.
+The execution a prompt starts, inside a conversation. A conversation has many runs, one per
+prompt, and at most one of them works at a time. A run has a state.
 
 ### Event
 
@@ -108,8 +133,9 @@ from the conversation.
 These were proposed in the design discussion and the maintainer has not confirmed them.
 They are inputs to system design (agenda items in [mvp.md](mvp.md)), not decisions.
 
-- **Run states.** A run might have a state: working, waiting for an answer, finished,
-  cancelled or interrupted. The states and their transitions are the next thing to design.
+- **Run states.** A run has a state; which states is not decided. They might be working,
+  waiting for an answer, finished, cancelled and interrupted. The states and their
+  transitions are the next thing to design.
 - **Event order and delivery.** Events might be numbered in order within a conversation and
   stored before they are delivered, so that a client that reconnects asks for everything
   after the last number it saw.
@@ -127,8 +153,7 @@ They are inputs to system design (agenda items in [mvp.md](mvp.md)), not decisio
   pending ask is one with no answer yet. An answer to an ask that was already answered does
   not resume the work again, as the acceptance of R06 requires.
 - **Code history belongs to the session.** The code history, which restores code (R09),
-  might belong to the session and its worktree, so that it survives a clear. A session may
-  have no worktree when it is not about code.
+  might belong to the session and its workspace, so that it survives a clear.
 - **Terms to name later.** These are named when their flow is designed: agent and workflow
   definitions (R10), a delegated run (R11), memory and plan (R12), device (R07) and code
   checkpoint (R09).
@@ -149,6 +174,9 @@ Source: the harness's `docs/architecture.md`.
   them. It lives in process as long as the agent, and persisting it waits for a session
   manager. The product's conversation is stored and is the set of messages in a session.
 - **Run.** `Agent.run` is a run in the same sense: one execution for one prompt.
+- **Workspace and roots.** The harness's `workspace` option is a list of `roots`, each a
+  folder with `read` or `write` access, which is the product's workspace and its roots. The
+  harness also lets one run write to a workspace at a time.
 - **`ProgressEvent`.** The narration a run passes to `onProgress`. The product's event is
   what the API returns and stores, which is not the same type; whether one is built from
   the other is for system design.
@@ -178,7 +206,7 @@ Source: the harness's `docs/architecture.md`.
 - **[#5](https://github.com/Mikode13/harness-api/issues/5)** says "a session has its own
   worktree", as this vocabulary does. It also says "even if multiple conversations
   reference it" about one workspace; here a session has one active conversation and a
-  worktree belongs to the session.
+  workspace belongs to the session.
 - **[#6](https://github.com/Mikode13/harness-api/issues/6)** says "task" for the unit the
   executor runs, "attempt", "live conversational follow-ups" and "per-conversation/workspace
   exclusion". It names the harness's "ask/approve".
