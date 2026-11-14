@@ -53,6 +53,9 @@ pnpm run test:coverage  # the same suite with V8 coverage of src
 criteria across the harness, API, CLI and mobile app. It describes the target product;
 the implementation status above still applies.
 
+[`docs/glossary.md`](docs/glossary.md) defines the product's terms, such as session,
+conversation, run and event.
+
 [`docs/architecture.md`](docs/architecture.md) describes the modules, their boundaries and the
 application's contract. [`docs/decisions.md`](docs/decisions.md) records why it is built this
 way.
