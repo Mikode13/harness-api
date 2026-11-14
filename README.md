@@ -56,6 +56,9 @@ the implementation status above still applies.
 [`docs/glossary.md`](docs/glossary.md) defines the product's terms, such as session,
 conversation, run and event.
 
+[`docs/run-lifecycle.md`](docs/run-lifecycle.md) defines where a run executes, its states and
+what is left when it ends. It is a design, not built yet.
+
 [`docs/architecture.md`](docs/architecture.md) describes the modules, their boundaries and the
 application's contract. [`docs/decisions.md`](docs/decisions.md) records why it is built this
 way.
