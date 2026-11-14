@@ -45,7 +45,7 @@ It is not the harness's `Session`; see the last section.
 
 ### Conversation
 
-The set of messages inside a session: the prompts the user sends and the events the API
+The set of messages inside a session: what the user sends and the events the API
 returns. It is always whole: nothing in it is dropped or rewritten to save context. A session
 has one active conversation at a time.
 
@@ -98,7 +98,10 @@ works in it.
 
 ### Prompt
 
-What the user sends in a conversation.
+What a run is started with: what the user writes, plus the context the product adds to it,
+such as the system prompt and the plans.
+
+It is not only the user's text. What the user writes is one part of the prompt.
 
 ### Run
 
@@ -146,9 +149,11 @@ They are inputs to system design (agenda items in [mvp.md](mvp.md)), not decisio
   events are a short narration and cannot rebuild the model's context, so the model's
   conversation might be stored as the harness serializes it
   ([harness#111](https://github.com/Mikode13/harness/issues/111)).
-- **Stored summaries and the rest of the context.** A summary the context uses might be
-  stored, since it costs tokens and cannot be reproduced. The context also takes in what is
-  not conversation: the agent's instructions and, later, memories and plans.
+- **Stored summaries.** A summary the context uses might be stored, since it costs tokens
+  and cannot be reproduced.
+- **A name for what the user writes.** The prompt is the user's text plus the context the
+  product adds, so the user's text alone has no term of its own yet. Whether the
+  conversation keeps the whole prompt or only that text is not decided either.
 - **An ask is answered once.** The answer to an ask might be an event of its own, so that a
   pending ask is one with no answer yet. An answer to an ask that was already answered does
   not resume the work again, as the acceptance of R06 requires.
