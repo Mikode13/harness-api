@@ -106,7 +106,13 @@ It is not only the user's text. What the user writes is one part of the prompt.
 ### Run
 
 The execution a prompt starts, inside a conversation. A conversation has many runs, one per
-prompt, and at most one of them works at a time. A run has a state.
+prompt, and at most one of them works at a time. A run has a state;
+[run-lifecycle.md](run-lifecycle.md) defines the states.
+
+### Executor
+
+The process that runs the harness for one run. The API starts it as a child process and is
+the only one it talks to.
 
 ### Event
 
@@ -136,9 +142,6 @@ from the conversation.
 These were proposed in the design discussion and the maintainer has not confirmed them.
 They are inputs to system design (agenda items in [mvp.md](mvp.md)), not decisions.
 
-- **Run states.** A run has a state; which states is not decided. They might be working,
-  waiting for an answer, finished, cancelled and interrupted. The states and their
-  transitions are the next thing to design.
 - **Event order and delivery.** Events might be numbered in order within a conversation and
   stored before they are delivered, so that a client that reconnects asks for everything
   after the last number it saw.
