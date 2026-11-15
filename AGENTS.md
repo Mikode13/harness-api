@@ -11,6 +11,20 @@ answers `GET /health`; see the README's status.
 before placing a change, and update it in the same pull request when a change moves a boundary
 or a contract.
 
+## Product design
+
+The product's scope, glossary, flows and design live in
+[`Mikode13/harness-docs`](https://github.com/Mikode13/harness-docs), which also covers the CLI
+and the mobile app. Read its `README.md`, its `glossary.md` and the flow or design document of
+the area before designing or implementing a feature here, and use the glossary's terms.
+
+A change here that departs from one of those documents updates it there in the same batch of
+work, with an entry in its `docs/decisions.md` that says why. This repository's `docs/` describe
+this application: its architecture and the decisions that are its own. A decision about the
+product that crosses its projects is recorded in `harness-docs`; one that is both is recorded
+in both logs, each linking the other. A rule for every MiKode project is neither: it goes
+through the ADR process of `Mikode13/engineering`.
+
 ## Constraints
 
 - The mandatory test suite stays offline. It starts the application on a local port; once the

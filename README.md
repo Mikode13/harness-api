@@ -53,6 +53,9 @@ pnpm run test:coverage  # the same suite with V8 coverage of src
 application's contract. [`docs/decisions.md`](docs/decisions.md) records why it is built this
 way.
 
+The product this server is part of, with its scope, glossary and flows, is designed in
+[`Mikode13/harness-docs`](https://github.com/Mikode13/harness-docs).
+
 ## Exceptions to the shared configuration
 
 NestJS reads the types of constructor parameters from decorator metadata to inject them, which
