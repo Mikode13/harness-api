@@ -8,16 +8,24 @@ agent works on the server's own clone of the repository.
 
 This is the initial scaffold. The application starts and answers `GET /health`, and nothing else:
 it does not depend on the harness yet, and it has no sessions, agents or persistence. Those are
-designed in their own issues. The intended direction, agents that run only on the server with a
-clone and a worktree per session, is recorded in [`docs/decisions.md`](docs/decisions.md), and is
-not built yet.
+designed in [`harness-docs`](https://github.com/Mikode13/harness-docs), including the
+[run lifecycle](https://github.com/Mikode13/harness-docs/blob/main/design/run-lifecycle.md),
+[data model](https://github.com/Mikode13/harness-docs/blob/main/design/data-model.md) and
+[server-managed workspaces](https://github.com/Mikode13/harness-docs/blob/main/design/workspace-and-git.md).
+These are target designs, not endpoints or services provided by this scaffold.
+
+The MVP targets personal use by the maintainer. HTTPS, API-key authentication, execution
+isolation and conversation persistence still need implementation and deployment setup; running
+the scaffold below does not provide them. Onboarding other users and storing their credentials
+are a later phase; see the
+[security design](https://github.com/Mikode13/harness-docs/blob/main/design/security.md).
 
 The project is source-available under the MIT License with the Commons Clause License Condition
 v1.0; see [`LICENSE`](LICENSE). It is not published to npm: it deploys as a server.
 
 ## Requirements
 
-- Node.js 22.13 or later, or 24, as the
+- Node.js 22.x (22.13 or later) or 24.x, as the
   [Node.js version standard](https://github.com/Mikode13/engineering/blob/main/standards/nodejs-version.md)
   sets; `.nvmrc` selects 24 for development.
 - pnpm, which switches itself to the version pinned in `package.json`.
