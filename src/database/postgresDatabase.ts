@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import pg from 'pg';
 import type { Database, Queryable } from './database.ts';
 
@@ -14,6 +15,13 @@ async function run(
 /** A {@link Database} on a PostgreSQL server, through a pool of connections. */
 export function createPostgresDatabase(connectionString: string): Database {
 	const pool = new pg.Pool({ connectionString });
+	// An idle connection that drops emits `error` on the pool, which would end the process with no
+	// listener. The pool discards that client and opens another for the next query; a request
+	// that needs the database while it is down fails on its own.
+	const logger = new Logger('Database');
+	pool.on('error', error => {
+		logger.error(`An idle database connection failed: ${error.message}`);
+	});
 
 	return {
 		query: (sql: string, params: readonly unknown[] = []) => run(pool, sql, params),

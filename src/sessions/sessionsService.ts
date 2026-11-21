@@ -62,20 +62,22 @@ export class SessionsService {
 	constructor(@Inject(DATABASE) private readonly db: Database) {}
 
 	async acceptPrompt(userId: string, input: PromptInput): Promise<PromptAccepted> {
-		try {
-			return await this.db.transaction(async tx => {
-				const known = await findPrompt(tx, userId, input.promptId);
-				if (known !== undefined) return known;
-				return await acceptNewPrompt(tx, userId, input);
-			});
-		} catch (error) {
-			// Two copies of one prompt racing: the second finds what the first stored.
-			if (isUniqueViolation(error, 'runs_prompt_once')) {
-				const known = await findPrompt(this.db, userId, input.promptId);
-				if (known !== undefined) return known;
+		// A copy of the prompt that raced another can fail on a constraint the other one took; the
+		// second attempt then finds what the first stored, or the session it created.
+		for (let attempt = 1; ; attempt += 1) {
+			try {
+				return await this.db.transaction(async tx => {
+					const known = await findPrompt(tx, userId, input.promptId);
+					if (known !== undefined) return known;
+					return await acceptNewPrompt(tx, userId, input);
+				});
+			} catch (error) {
+				const raced =
+					isUniqueViolation(error, 'runs_prompt_once') || isUniqueViolation(error, 'sessions_pkey');
+				if (raced && attempt < 2) continue;
+				if (isUniqueViolation(error, 'runs_one_active')) throw busy();
+				throw error;
 			}
-			if (isUniqueViolation(error, 'runs_one_active')) throw busy();
-			throw error;
 		}
 	}
 
@@ -188,6 +190,11 @@ async function acceptNewPrompt(
 	const conversation = conversations[0];
 	if (conversation === undefined)
 		throw new Error(`Session ${input.sessionId} has no active conversation.`);
+
+	// With the conversation locked, a copy of this prompt that was accepted meanwhile is visible:
+	// it answers with that run rather than finding the conversation busy with it.
+	const accepted = await findPrompt(tx, userId, input.promptId);
+	if (accepted !== undefined) return accepted;
 
 	const { rows: active } = await tx.query<{ id: string }>(
 		`SELECT id FROM runs WHERE conversation_id = $1

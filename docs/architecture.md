@@ -47,7 +47,7 @@ PostgreSQL, through migration 1 in `src/database/migrations.ts`. It follows the 
 - **`sessions`**: keyed by `(user_id, id)`, since a client generates the id and it is unique only
   within its user. `workspace` is only `none` for now.
 - **`conversations`**: at most one active per session, by a partial unique index; clearing
-  will archive it. `next_event_number` is the conversation's count of events.
+  will archive it. `next_event_number` is the number the conversation's next event takes.
 - **`runs`**: one per prompt. `(user_id, prompt_id)` is unique, so a prompt sent again names the
   same run, and a partial unique index keeps one run per conversation not ended.
 - **`events`**: keyed by `(conversation_id, number)`. A user's message is an event of no run, with
@@ -61,8 +61,10 @@ In one transaction: a prompt id the user already sent answers with its run, befo
 check. Otherwise the session is created when the user has none with that id, with a default
 title from the prompt's text, and rejected when it is deleted. A conversation with a run not ended
 rejects the prompt as busy. The run is created as `setting_up`, and the user's message is stored
-with the conversation's next number. Two copies of one prompt racing are settled by the unique
-constraint: the second finds what the first stored.
+with the conversation's next number. Two copies of one prompt racing are settled in two ways: once the
+conversation is locked, the prompt id is looked up again, so a copy that waited finds the run the
+other stored; and a copy that fails on the constraint of a session or a prompt the other just
+created tries once more, and finds them.
 
 ## Dependencies and contracts
 
