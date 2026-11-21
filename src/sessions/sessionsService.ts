@@ -83,7 +83,7 @@ export class SessionsService {
 
 	async list(userId: string): Promise<SessionSummary[]> {
 		const { rows } = await this.db.query<{ id: string; title: string; created_at: Date }>(
-			'SELECT id, title, created_at FROM sessions WHERE user_id = $1 AND deleted_at IS NULL ORDER BY id DESC',
+			'SELECT id, title, created_at FROM sessions WHERE user_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC, id DESC',
 			[userId],
 		);
 		return rows.map(row => ({

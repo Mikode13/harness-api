@@ -1,5 +1,6 @@
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { type StaleReads, withStaleReads } from '../support/staleReads.ts';
 import { startTestApp, type TestApp } from '../support/testApp.ts';
 
 describe('sessions and prompts', () => {
@@ -133,27 +134,6 @@ describe('sessions and prompts', () => {
 		});
 	});
 
-	describe('two copies of one prompt at once', () => {
-		it('answer with one run, for a new session and for one that exists', async () => {
-			const sessionId = uuidv7();
-			const first = { promptId: uuidv7(), text: 'First', workspace: 'none' };
-			const [a, b] = await Promise.all([prompt(sessionId, first), prompt(sessionId, first)]);
-			const firstRuns = (await Promise.all([a.json(), b.json()])) as { runId: string }[];
-
-			const { rows } = await test.database.query<{ id: string }>('SELECT id FROM runs');
-			await test.database.query("UPDATE runs SET state = 'completed', ended_at = now()");
-			const second = { promptId: uuidv7(), text: 'Second' };
-			const [c, d] = await Promise.all([prompt(sessionId, second), prompt(sessionId, second)]);
-			const secondRuns = (await Promise.all([c.json(), d.json()])) as { runId: string }[];
-
-			expect([a.status, b.status].sort()).toEqual([200, 201]);
-			expect(firstRuns[0]?.runId).toBe(firstRuns[1]?.runId);
-			expect(rows).toHaveLength(1);
-			expect([c.status, d.status].sort()).toEqual([200, 201]);
-			expect(secondRuns[0]?.runId).toBe(secondRuns[1]?.runId);
-		});
-	});
-
 	describe('a busy conversation', () => {
 		it('rejects a new prompt while a run of the conversation is not ended', async () => {
 			const sessionId = uuidv7();
@@ -263,5 +243,59 @@ describe('sessions and prompts', () => {
 
 			expect([badSession.status, badPrompt.status]).toEqual([400, 400]);
 		});
+	});
+});
+
+describe('a copy of a prompt that read before another copy committed', () => {
+	const lookupPrompt = /FROM runs r JOIN conversations/;
+	const lookupSession = /SELECT deleted_at FROM sessions/;
+	let test: TestApp;
+	let stale: StaleReads;
+	let headers: Record<string, string>;
+
+	beforeEach(async () => {
+		test = await startTestApp(database => {
+			stale = withStaleReads(database);
+			return stale.database;
+		});
+		({ headers } = await test.user());
+	});
+
+	afterEach(async () => {
+		await test.close();
+	});
+
+	function send(sessionId: string, body: Record<string, unknown>): Promise<Response> {
+		return fetch(`${test.url}/sessions/${sessionId}/prompts`, {
+			method: 'POST',
+			headers,
+			body: JSON.stringify(body),
+		});
+	}
+
+	it('finds the run once the conversation is locked, instead of finding it busy', async () => {
+		const sessionId = uuidv7();
+		const body = { promptId: uuidv7(), text: 'Hello', workspace: 'none' };
+		const first = (await (await send(sessionId, body)).json()) as { runId: string };
+
+		stale.arm([lookupPrompt]);
+		const second = await send(sessionId, body);
+
+		expect(second.status).toBe(200);
+		await expect(second.json()).resolves.toMatchObject({ runId: first.runId });
+	});
+
+	it('tries again when the other copy created the session it was about to create', async () => {
+		const sessionId = uuidv7();
+		const body = { promptId: uuidv7(), text: 'Hello', workspace: 'none' };
+		const first = (await (await send(sessionId, body)).json()) as { runId: string };
+
+		stale.arm([lookupPrompt, lookupSession]);
+		const second = await send(sessionId, body);
+
+		expect(second.status).toBe(200);
+		await expect(second.json()).resolves.toMatchObject({ runId: first.runId });
+		const { rows } = await test.database.query('SELECT 1 FROM sessions');
+		expect(rows).toHaveLength(1);
 	});
 });

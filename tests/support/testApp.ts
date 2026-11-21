@@ -14,9 +14,12 @@ export interface TestApp {
 	close(): Promise<void>;
 }
 
-export async function startTestApp(): Promise<TestApp> {
+/** Starts the application; `wrap` lets a test change how it sees the database. */
+export async function startTestApp(
+	wrap: (database: Database) => Database = database => database,
+): Promise<TestApp> {
 	const database = createPgliteDatabase();
-	const app = await createApp({ database });
+	const app = await createApp({ database: wrap(database) });
 	await app.listen(0, '127.0.0.1');
 	return {
 		app,

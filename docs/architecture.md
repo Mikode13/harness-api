@@ -80,7 +80,7 @@ created tries once more, and finds them.
     prompt id already sent. 400 for an id that is not a UUID of version 7 or an empty text, 422
     for a first prompt without `"workspace": "none"`, 409 while a run of the conversation is not
     ended, and 410 for a deleted session.
-  - `GET /sessions`: the user's sessions that are not deleted, newest first, as
+  - `GET /sessions`: the user's sessions that are not deleted, newest first by when the server created them, as
     `{ id, title, createdAt }`.
   - `GET /sessions/:sessionId/events?after=N`: the active conversation's events numbered after
     `N` (0 when omitted), in order, as `{ conversationId, events }`; 404 for a session the user
