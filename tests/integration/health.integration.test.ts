@@ -1,28 +1,26 @@
-import type { INestApplication } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createApp } from '../../src/app.ts';
+import { startTestApp, type TestApp } from '../support/testApp.ts';
 
 describe('GET /health', () => {
-	let app: INestApplication;
+	let test: TestApp;
 
 	beforeEach(async () => {
-		app = await createApp();
-		await app.listen(0, '127.0.0.1');
+		test = await startTestApp();
 	});
 
 	afterEach(async () => {
-		await app.close();
+		await test.close();
 	});
 
-	it('answers ok once the application has started', async () => {
-		const response = await fetch(`${await app.getUrl()}/health`);
+	it('answers ok once the application has started, without a key', async () => {
+		const response = await fetch(`${test.url}/health`);
 
 		expect(response.status).toBe(200);
 		await expect(response.json()).resolves.toEqual({ status: 'ok' });
 	});
 
 	it('answers 404 for a path it does not serve', async () => {
-		const response = await fetch(`${await app.getUrl()}/nothing`);
+		const response = await fetch(`${test.url}/nothing`);
 
 		expect(response.status).toBe(404);
 	});

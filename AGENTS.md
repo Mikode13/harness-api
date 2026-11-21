@@ -4,8 +4,9 @@
 
 `harness-api` is a NestJS application that will run `@mikode13/harness` agents on a server. It
 is a consumer of the harness, like `harness-cli`: agent behavior, provider error classification
-and the agent contracts belong in the harness, never copied here. Today it only starts and
-answers `GET /health`; see the README's status.
+and the agent contracts belong in the harness, never copied here. Today it stores sessions,
+prompts and events in PostgreSQL behind an API key, and runs no agent yet; see the README's
+status.
 
 [`docs/architecture.md`](docs/architecture.md) owns the module map and the contract. Read it
 before placing a change, and update it in the same pull request when a change moves a boundary
@@ -29,8 +30,13 @@ through the ADR process of `Mikode13/engineering`.
 
 - The mandatory test suite stays offline. It starts the application on a local port; once the
   harness is a dependency, its provider SDKs are replaced by fakes, never called.
-- Build the application through `createApp` in `src/app.ts`. Tests use it to start the same
-  application the server runs, on a port of their own.
+- Build the application through `createApp` in `src/app.ts`, with the database it uses. Tests
+  use it to start the same application the server runs, on a port of their own, over PGlite
+  (`tests/support/`), so they need no PostgreSQL server.
+- Every query is scoped to its user. The ids a client generates, a session's and a prompt's, are
+  unique only within their user, so a lookup by such an id always names the user too.
+- A migration in `src/database/migrations.ts` is never edited once it has shipped: a change is a
+  new migration at the end.
 
 ## Hazards
 
