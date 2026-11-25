@@ -6,17 +6,19 @@ agent works on the server's own clone of the repository.
 
 ## Status
 
-This is the initial scaffold. The application starts and answers `GET /health`, and nothing else:
-it does not depend on the harness yet, and it has no sessions, agents or persistence. Those are
+The API stores its state in PostgreSQL and authenticates every request with an API key. It
+accepts prompts, creates the session the first prompt names, and keeps each conversation's
+events in one numbered order that a client reads from the last number it saw. It runs no agent
+yet: a prompt's run stays `setting_up`, since the executor, its sandbox and the harness come
+next, and a session can have no projects yet. Those are
 designed in [`harness-docs`](https://github.com/Mikode13/harness-docs), including the
 [run lifecycle](https://github.com/Mikode13/harness-docs/blob/main/design/run-lifecycle.md),
 [data model](https://github.com/Mikode13/harness-docs/blob/main/design/data-model.md) and
 [server-managed workspaces](https://github.com/Mikode13/harness-docs/blob/main/design/workspace-and-git.md).
 These are target designs, not endpoints or services provided by this scaffold.
 
-The MVP targets personal use by the maintainer. HTTPS, API-key authentication, execution
-isolation and conversation persistence still need implementation and deployment setup; running
-the scaffold below does not provide them. Onboarding other users and storing their credentials
+The MVP targets personal use by the maintainer. HTTPS, execution isolation and running agents
+still need implementation and deployment setup. Onboarding other users and storing their credentials
 are a later phase; see the
 [security design](https://github.com/Mikode13/harness-docs/blob/main/design/security.md).
 
@@ -32,24 +34,35 @@ v1.0; see [`LICENSE`](LICENSE). It is not published to npm: it deploys as a serv
 
 ## Run it
 
+The API needs a PostgreSQL database, named by `DATABASE_URL`. It applies its migrations when it
+starts.
+
 ```sh
 pnpm install
 pnpm run build
+export DATABASE_URL=postgres://user:password@localhost:5432/harness
+pnpm run user:create -- maintainer   # prints the user's id and its API key, once
 pnpm start
 ```
 
-The server listens on `PORT`, or 3000 when it is not set:
+The server listens on `PORT`, or 3000 when it is not set. Every request but `GET /health`
+carries the key:
 
 ```sh
 curl http://localhost:3000/health
 # {"status":"ok"}
+curl -X POST http://localhost:3000/sessions/<session id>/prompts \
+  -H "Authorization: Bearer <key>" -H 'Content-Type: application/json' \
+  -d '{"promptId":"<prompt id>","text":"Hello","workspace":"none"}'
 ```
+
+The ids of a session and of a prompt are UUIDs of version 7, which the client generates.
 
 ## Development
 
 ```sh
 pnpm run check          # Prettier, ESLint and tsc for src and tests
-pnpm test               # the offline integration suite
+pnpm test               # the offline integration suite, on PGlite: no PostgreSQL server needed
 pnpm run test:coverage  # the same suite with V8 coverage of src
 ```
 
